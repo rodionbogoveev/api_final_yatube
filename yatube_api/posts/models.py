@@ -46,5 +46,13 @@ class Follow(models.Model):
                                   related_name='following',
                                   verbose_name='На кого подписан')
 
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'following'],
+                name='unique_user_following'
+            )
+        ]
+
     def __str__(self):
         return self.following.username

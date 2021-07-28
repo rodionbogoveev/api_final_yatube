@@ -1,19 +1,22 @@
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+from rest_framework import filters, permissions, viewsets
 
-from posts.models import Group, Post, Follow, Comment, User
-from .serializers import CommentSerializer, GroupSerializer, PostSerializer, FollowSerializer
+from .serializers import (CommentSerializer, FollowSerializer, GroupSerializer,
+                          PostSerializer)
+from posts.models import Group, Post, User
 
 
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.select_related('author')
     serializer_class = PostSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -53,10 +56,12 @@ class CommentViewSet(viewsets.ModelViewSet):
 
 class FollowViewSet(viewsets.ModelViewSet):
     serializer_class = FollowSerializer
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('following__username',)
 
     def get_queryset(self):
         user = get_object_or_404(User, username=self.request.user.username)
-        return user.follower.all()
+        return user.follower
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
