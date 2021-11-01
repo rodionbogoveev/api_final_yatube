@@ -1,5 +1,5 @@
 requests
-django==2.2.6
+django==2.2.24
 pytest
 pytest-pythonpath==0.7.3
 pytest-django
